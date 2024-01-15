@@ -1,250 +1,213 @@
-#define _CRT_SECURE_NO_WARNINGS
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-#define MAX (60)
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define MAX_LINE 30
 
 struct _list;
 typedef struct _list* LPosition;
-typedef struct _list
-{
-	char city[MAX];
-	int population;
-	LPosition next;
+typedef struct _list {
+    char grad[MAX_LINE];
+    int br_stan;
+    LPosition next;
 }list;
 
 struct _tree;
 typedef struct _tree* TPosition;
-typedef struct _tree
-{
-	char country[MAX];
-	LPosition ListHead;
-	TPosition Left;
-	TPosition Right;
+typedef struct _tree {
+    char drzava[MAX_LINE];
+    LPosition gradovi;
+    TPosition left;
+    TPosition right;
 }tree;
 
-
-TPosition CreateTreeElement(TPosition root);
-TPosition ReadCountryFromFile(TPosition root, char* FileName);
-TPosition InsertInTree(TPosition root, char* CountryName);
-TPosition FindCountry(TPosition root, char* CountryName);
-int PrintInOrder(TPosition root);
-int CreateListElement(LPosition Head, char* CityName, int pop);
-LPosition ReadCityFromFile(LPosition Head, char* FileName);
-int PrintList(LPosition Head);
-LPosition CreateList(LPosition Head);
-int PrintResult(LPosition Head, int num);
+int InsertInTreeFromFile(TPosition head, char* fileName);
+int InsertInListFromFile(LPosition head, char* fileName);
+int SortListWhileInserting(LPosition head, LPosition newPerson);
+int InsertAfter(LPosition who, LPosition where);
+LPosition CreateListElement(char* grad, int br_stan);
+int PrintList(LPosition first);
+int PrintTreeInOrder(TPosition current);
+TPosition SortTreeWhileInserting(TPosition current, TPosition newElement);
+TPosition CreateTreeElement(char* drzava);
 
 
-int main()
-{
-	TPosition root = NULL, current = NULL;
-	char file[MAX] = "datoteka.txt", CountryName[MAX] = { 0 };
-	int num = 0;
+int main() {
 
-	root = CreateTreeElement(root);
+    tree stblDrzava = { .drzava = "", .gradovi = NULL, .left = NULL, .right = NULL };
+    TPosition stabloDrzava = &stblDrzava;
 
-	strcpy(root->country, "Countries:");
+    char drzave[MAX_LINE] = { 0 };
+    printf("Unesi ime datoteke s kojom zelis raditi\n:");
+    scanf(" %[^\n]", drzave);
+    InsertInTreeFromFile(stabloDrzava, drzave);
+    PrintTreeInOrder(stabloDrzava);
 
-	root = ReadCountryFromFile(root, file);
-
-	PrintInOrder(root);
-
-
-	printf("\nChoose a country\n");
-
-	scanf(" %s", CountryName);
-	strcat(CountryName, ".txt");
-	current = FindCountry(root, CountryName);
-	if (current == NULL)
-	{
-		printf("There is no such a country in this file!");
-		return -1;;
-	}
-	printf("\nEnter a number of population:");
-	scanf("%d", &num);
-	PrintResult(current->ListHead, num);
-
-
-
-
-	return EXIT_SUCCESS;
-}
-LPosition CreateList(LPosition Head)
-{
-	Head = (LPosition)malloc(sizeof(list));
-	if (Head == NULL) {
-		perror("Can't allocate memory!");
-		return NULL;
-	}
-
-	strcpy(Head->city, "");
-	Head->population = 0;
-	Head->next = NULL;
-
-	return Head;
-}
-
-TPosition CreateTreeElement(TPosition root)
-{
-	root = (TPosition)malloc(sizeof(tree));
-
-	if (root == NULL)
-	{
-		perror("Can't allocate memory!");
-		return -1;
-	}
-
-	root->Left = NULL;
-	root->Right = NULL;
-	root->ListHead = NULL;
-	strcpy(root->country, "");
-
-	return root;
-}
-TPosition ReadCountryFromFile(TPosition Head, char* FileName)
-{
-	FILE* fp = NULL;
-	char cnt[MAX] = { 0 };
-
-	fp = fopen(FileName, "r");
-	if (fp == NULL)
-	{
-		printf("Error opening file!\n");
-		return -1;
-	}
-
-	while (!feof(fp))
-	{
-		fscanf(fp, "%s \n", cnt);
-		Head = InsertInTree(Head, cnt);
-	}
-
-	fclose(fp);
-	return Head;
-}
-TPosition InsertInTree(TPosition root, char* CountryName)
-{
-	if (root == NULL)
-	{
-		root = CreateTreeElement(root);
-		strcpy(root->country, CountryName);
-		root->ListHead = NULL;
-		root->ListHead = ReadCityFromFile(root->ListHead, CountryName);
-	}
-	else if (strcmp(root->country, CountryName) > 0)
-		root->Left = InsertInTree(root->Left, CountryName);
-	else if (strcmp(root->country, CountryName) < 0)
-		root->Right = InsertInTree(root->Right, CountryName);
-
-	return root;
-}
-LPosition ReadCityFromFile(LPosition Head, char* FileName)
-{
-	FILE* fp = NULL;
-	char cty[MAX] = { 0 };
-	int pop = 0;
-
-	Head = CreateList(Head);
-
-	fp = fopen(FileName, "r");
-	if (fp == NULL)
-	{
-		printf("Error opening file!");
-		return NULL;
-	}
-
-	while (!feof(fp))
-	{
-		fscanf(fp, " %s %d", cty, &pop);
-		CreateListElement(Head, cty, pop);
-	}
-
-	fclose(fp);
-	return Head;
-}
-int CreateListElement(LPosition Head, char* CityName, int pop)
-{
-	LPosition NewEl = NULL;
-	NewEl = CreateList(NewEl);
-
-	strcpy(NewEl->city, CityName);
-	NewEl->population = pop;
-
-	while (Head->next != NULL)
-	{
-		if (NewEl->population < Head->next->population)
-			break;
-		else if (NewEl->population == Head->next->population)
-		{
-			if (strcmp(NewEl->city, Head->next->city) < 0)
-				break;
-			else if (strcmp(NewEl->city, Head->next->city) > 0)
-			{
-				Head = Head->next;
-				continue;
-			}
-		}
-		Head = Head->next;
-	}
-	NewEl->next = Head->next;
-	Head->next = NewEl;
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 
 }
 
 
+int InsertInTreeFromFile(TPosition head, char* fileName) {
 
-int PrintInOrder(TPosition root)
-{
+    FILE* dat = NULL;
+    dat = fopen(fileName, "r");
+    char drzava[MAX_LINE] = { 0 }, datotekaGradova[MAX_LINE];
 
-	if (root == NULL)
-		return -1;
-	else
-	{
-		PrintInOrder(root->Left);
-		printf("\n%s\n", root->country);
-		PrintList(root->ListHead);
-		PrintInOrder(root->Right);
-	}
-	printf("\n");
+    tree tempp = { .drzava = "", .gradovi = NULL, .left = NULL, .right = NULL };
+    TPosition temp = &tempp;
 
-	return EXIT_SUCCESS;
-}
-int PrintList(LPosition Head)
-{
-	if (Head == NULL)
-		return -1;
-	else
-	{
-		Head = Head->next;
-		while (Head != NULL)
-		{
-			printf("%s -> %d\n", Head->city, Head->population);
-			Head = Head->next;
-		}
-		return EXIT_SUCCESS;
-	}
+    if (!dat) {
+        printf("Greska pri alociranju.\n");
+        return EXIT_FAILURE;
+    }
+
+    while (!feof(dat)) {
+
+        fscanf(dat, "%s %s", drzava, datotekaGradova);
+        //printf("%s", temp -> gradovi);
+        temp = CreateTreeElement(drzava);
+        //printf("%s %d", temp -> gradovi -> grad, temp -> gradovi -> br_stan);
+        InsertInListFromFile(temp->gradovi, datotekaGradova);
+
+        head = SortTreeWhileInserting(head, temp);
+    }
+
+    fclose(dat);
+    return EXIT_SUCCESS;
 }
 
-TPosition FindCountry(TPosition root, char* CountryName)
-{
-	if (root == NULL)
-		return NULL;
-	else if (strcmp(CountryName, root->country) == 0)
-		return root;
-	else if (strcmp(CountryName, root->country) > 0)
-		return FindCountry(root->Right, CountryName);
+int InsertInListFromFile(LPosition head, char* fileName) {
+    //printf("\nHead u insertu: %s", head);
+    FILE* dat = NULL;
+    dat = fopen(fileName, "r");
 
-	return FindCountry(root->Left, CountryName);
+    char grad[MAX_LINE] = { 0 };
+    int br_stan = 0;
+
+    list tempp = { .grad = "", .br_stan = 0, .next = NULL };
+    LPosition temp = &tempp;
+
+    if (!dat) {
+        printf("Greska pri alociranju.\n");
+        return EXIT_FAILURE;
+    }
+
+    while (!feof(dat)) {
+        fscanf(dat, "%s %d", grad, &br_stan);
+        temp = CreateListElement(grad, br_stan);
+        //printf("prije while petlje u sortiranju liste");
+        //printf("%s %d", drzava -> gradovi -> grad, drzava -> gradovi -> br_stan);
+        SortListWhileInserting(head, temp);
+        //printf("na kraju while petlje u sortiranju liste");
+    }
+
+    fclose(dat);
+
+    return EXIT_SUCCESS;
+
 }
-int PrintResult(LPosition Head, int num)
-{
-	while (Head != NULL)
-	{
-		if (num < Head->population)
-			printf(" %s-%d", Head->city, Head->population);
-		Head = Head->next;
-	}
-	return EXIT_SUCCESS;
+
+
+int SortListWhileInserting(LPosition head, LPosition newElement) {
+
+    //printf("\nnovi element: %s %d", newElement -> grad, newElement -> br_stan);
+    //printf("\nhead element: %s %d", head -> grad, head -> br_stan);
+
+    while (head->next != NULL && head->next->br_stan > newElement->br_stan) { //ne triba next isprid temp!!
+        head = head->next;
+    }
+    InsertAfter(newElement, head);
+    return EXIT_FAILURE;
+}
+
+
+int InsertAfter(LPosition who, LPosition where) {
+
+    who->next = where->next;
+    where->next = who;
+
+    return EXIT_SUCCESS;
+}
+
+LPosition CreateListElement(char* grad, int br_stan) {
+    LPosition newElement = NULL;
+    newElement = (LPosition)malloc(sizeof(list));
+
+    if (!newElement) {
+        perror("\nCan't allocate memory!");
+        return NULL;
+    }
+
+    strcpy(newElement->grad, grad);
+    newElement->br_stan = br_stan;
+    newElement->next = NULL;
+
+    return newElement;
+}
+
+int PrintList(LPosition first) {
+
+    if (first == NULL) return 0;
+    LPosition temp = first->next;
+
+    while (temp) {
+        printf("\n\t\tGrad %s sa %d stanovnika", temp->grad, temp->br_stan);
+        temp = temp->next;
+    }
+
+    return EXIT_SUCCESS;
+}
+
+int PrintTreeInOrder(TPosition current) {
+    if (current == NULL)
+        return EXIT_SUCCESS;
+
+    PrintTreeInOrder(current->left);
+    printf("\nDrzava: %s", current->drzava);
+    PrintList(current->gradovi);
+    PrintTreeInOrder(current->right);
+
+    return EXIT_SUCCESS;
+}
+
+TPosition SortTreeWhileInserting(TPosition current, TPosition newElement) {
+
+    if (!current)
+        return newElement;
+
+    if (strcmp(current->drzava, newElement->drzava) > 0) {
+        current->right = SortTreeWhileInserting(current->right, newElement);
+    }
+
+    else if (strcmp(current->drzava, newElement->drzava) < 0) {
+        current->left = SortTreeWhileInserting(current->left, newElement);
+    }
+    else free(newElement);
+
+    return current;
+}
+
+TPosition CreateTreeElement(char* drzava) {
+    TPosition newElement = NULL;
+    newElement = (TPosition)malloc(sizeof(tree));
+
+    if (!newElement) {
+        perror("\nCan't allocate memory.");
+        return NULL;
+    }
+
+    strcpy(newElement->drzava, drzava);
+    newElement->gradovi = (LPosition)malloc(sizeof(list));
+    if (!newElement->gradovi) {
+        perror("Can't allocate!");
+        free(newElement);
+        return NULL;
+    }
+    newElement->gradovi->next = NULL;
+    newElement->right = NULL;
+    newElement->left = NULL;
+
+    //printf("Element je kreiran.\n%s %s %s", newElement -> gradovi -> br_stan, newElement -> drzava, newElement -> left -> drzava);
+
+    return newElement;
 }
