@@ -19,4 +19,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="austrija.txt" />
+    <Text Include="belgija.txt" />
+    <Text Include="bih.txt" />
+  </ItemGroup>
 </Project>
