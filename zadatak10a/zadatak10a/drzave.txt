@@ -1,3 +1,0 @@
-Belgija belgija.txt
-Austrija austrija.txt
-BiH bih.txt
