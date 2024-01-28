@@ -1,0 +1,3 @@
+Mostar 120000
+Sarajevo 270000
+Bihac 60000
