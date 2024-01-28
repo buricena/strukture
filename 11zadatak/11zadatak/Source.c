@@ -42,15 +42,17 @@ PositionDrzava CreateCountryNode(char* countryName);
 PositionGrad CreateCityNode(char* cityName, int population);
 int InsertCountryIntoList(HashTable* hashTable, char* countryName, char* fileName);
 int InsertCitiesFromFile(PositionDrzava country, char* fileName);
-void PrintHashTable(HashTable* hashTable);
-void PrintDrzavaList(PositionDrzava drzavaList);
-void PrintCities(PositionGrad root);
-void ClearDrzavaList(PositionDrzava* drzavaList);
-void ClearCities(PositionGrad root);
+int PrintHashTable(HashTable* hashTable);
+int PrintDrzavaList(PositionDrzava drzavaList);
+int PrintCities(PositionGrad root);
+int ClearDrzavaList(PositionDrzava* drzavaList);
+int ClearCities(PositionGrad root);
 
 int main() {
     HashTable hashTable;
-    InitializeHashTable(&hashTable);
+    if (InitializeHashTable(&hashTable) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
 
     char fileName[MAX_NAME_LENGTH];
     printf("Unesite ime datoteke s popisom drzava i datotekama gradova: ");
@@ -66,13 +68,18 @@ int main() {
     char cityFileName[MAX_NAME_LENGTH];
 
     while (fscanf(file, "%s %s", countryName, cityFileName) == 2) {
-        InsertCountryIntoList(&hashTable, countryName, cityFileName);
+        if (InsertCountryIntoList(&hashTable, countryName, cityFileName) != EXIT_SUCCESS) {
+            fclose(file);
+            return EXIT_FAILURE;
+        }
     }
 
     fclose(file);
 
     printf("Popis drzava i gradova:\n");
-    PrintHashTable(&hashTable);
+    if (PrintHashTable(&hashTable) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
 
     // Oslobodi memoriju
     for (int i = 0; i < HASH_TABLE_SIZE; i++) {
@@ -182,9 +189,13 @@ int InsertCountryIntoList(HashTable* hashTable, char* countryName, char* fileNam
         if (country == NULL) {
             return EXIT_FAILURE;
         }
-        InsertIntoHashTable(hashTable, country);
+        if (InsertIntoHashTable(hashTable, country) != EXIT_SUCCESS) {
+            return EXIT_FAILURE;
+        }
     }
-    InsertCitiesFromFile(country, fileName);
+    if (InsertCitiesFromFile(country, fileName) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
     return EXIT_SUCCESS;
 }
 
@@ -248,33 +259,66 @@ int InsertCitiesFromFile(PositionDrzava country, char* fileName) {
     return EXIT_SUCCESS;
 }
 
-void PrintHashTable(HashTable* hashTable) {
+int PrintHashTable(HashTable* hashTable) {
     for (int i = 0; i < HASH_TABLE_SIZE; i++) {
         printf("Hash %d: ", i);
         HashNode* current = hashTable->table[i];
         while (current != NULL) {
             printf("%s -> ", current->drzava->ime_drzave);
-            PrintDrzavaList(current->drzava);
+            if (PrintDrzavaList(current->drzava) != EXIT_SUCCESS) {
+                return EXIT_FAILURE;
+            }
             current = current->next;
         }
         printf("\n");
     }
+    return EXIT_SUCCESS;
 }
 
-void PrintDrzavaList(PositionDrzava drzavaList) {
+int PrintDrzavaList(PositionDrzava drzavaList) {
     while (drzavaList != NULL) {
         printf("\n\tDrzava: %s\n", drzavaList->ime_drzave);
         printf("\tGradovi:\n");
-        PrintCities(drzavaList->Grad);
+        if (PrintCities(drzavaList->Grad) != EXIT_SUCCESS) {
+            return EXIT_FAILURE;
+        }
         drzavaList = drzavaList->next;
     }
+    return EXIT_SUCCESS;
 }
 
-void PrintCities(PositionGrad root) {
+int PrintCities(PositionGrad root) {
     if (root != NULL) {
-        PrintCities(root->L);
-        printf("\t\t%s - %d stanovnika\n", root->ime_grada, root->br_st);
-        PrintCities(root->D);
+        if (PrintCities(root->L) != EXIT_SUCCESS || printf("\t\t%s - %d stanovnika\n", root->ime_grada, root->br_st) < 0 || PrintCities(root->D) != EXIT_SUCCESS) {
+            return EXIT_FAILURE;
+        }
     }
+    return EXIT_SUCCESS;
 }
+
+int ClearDrzavaList(PositionDrzava* drzavaList) {
+    PositionDrzava currentCountry = *drzavaList;
+    while (currentCountry != NULL) {
+        PositionDrzava tempCountry = currentCountry;
+        currentCountry = currentCountry->next;
+        if (ClearCities(&(tempCountry->Grad)) != EXIT_SUCCESS) {
+            return EXIT_FAILURE;
+        }
+        free(tempCountry);
+    }
+    *drzavaList = NULL;
+    return EXIT_SUCCESS;
+}
+
+int ClearCities(PositionGrad root) {
+    if (root != NULL) {
+        if (ClearCities(root->L) != EXIT_SUCCESS || ClearCities(root->D) != EXIT_SUCCESS) {
+            return EXIT_FAILURE;
+        }
+        free(root);
+    }
+    return EXIT_SUCCESS;
+}
+
+
 
