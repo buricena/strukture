@@ -1,0 +1,3 @@
+Split 170000
+Zagreb 800000
+Osijek 90000
